@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI WebBot</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/addnew.css') }}">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css"
+  integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+
+<body>
+  <!-- Notification -->
+  <div style="text-align: center; font-size: 16px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div id="alert" class="alert alert-{{ category }}" style="position: absolute;top: 150px; right: 10px;">
+      <div class="button">
+        <div class="_main_button">
+          <p style="color: #fff;">{{ message }} <i class="fa-solid fa-user-check"></i> </p>
+        </div>
+      </div>
+    </div>
+    <script>
+      // Hàm tự động biến mất thông báo sau một khoảng thời gian
+      setTimeout(function () {
+        var alertDiv = document.getElementById('alert');
+        alertDiv.style.display = 'none';
+      }, 3000); // 3s
+    </script>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+
+  <section class="main-container">
+    <div class="wrap">
+      <div class="address">
+        <div class="follow">
+          <a><i class="fa-solid fa-envelope"></i>contact@demo.com</a>
+          <a><i class="fa-solid fa-location-dot"></i> Số 123 Đường Phan Chu Trinh, Quận 10, TP.HCM</a>
+        </div>
+        <div class="follow">
+          <a><i class="fa-solid fa-phone"></i>(+89) 094566578</a>
+          <a><i class="fa-brands fa-facebook"></i></a>
+          <a><i class="fa-brands fa-twitter"></i></a>
+          <a><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+    </div>
+    <div class="hr-box"></div>
+    <header class="wrap">
+      <div class="navbar">
+        <a class="box-logo" href="{{ url_for('index') }}">
+          <img src="/static/images/logo.png" alt="" class="logo">
+          <p>Face Recognition</p>
+        </a>
+        <div class="links">
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="">Works</a></li>
+          <li><a href="">About</a></li>
+          <li><a href="">Services</a></li>
+          <li><a href="{{ url_for('training') }}">Training</a></li>
+          <li><a href="" class="contact-btn">Contact</a></li>
+        </div>
+      </div>
+    </header>
+    <div class="main-content">
+      <div class="left" id="video-container">
+        <!-- Video feed sẽ xuất hiện ở đây -->
+      </div>
+      <div class="right">
+        <form id="user-form" action="{{ url_for('submit') }}" method="post">
+          <h1>Nhập thông tin</h1>
+
+          <div class="input-group">
+            <label for="mdd">Mã nhân viên</label>
+            <input id="mdd" name="mdd" type="text" class="input" placeholder="Mã nhân viên" required />
+          </div>
+
+          <div class="input-group">
+            <label for="name">Tên người dùng</label>
+            <input id="name" name="name" type="text" class="input" placeholder="Tên người dùng" required />
+          </div>
+
+          <div class="input-group">
+            <label for="dvct">Chức vụ</label>
+            <input id="dvct" name="dvct" type="text" class="input" placeholder="Chức vụ" required />
+          </div>
+
+          <div class="btn-wrapper-addnew">
+            <button type="submit" class="filled-btn">Submit</button>
+          </div>
+        </form>
+
+        <!-- <button class="getImg-btn" id="getImg">Lấy ảnh</button> -->
+      </div>
+    </div>
+  </section>
+
+  
+  <script type="text/javascript">
+    $(document).ready(function () {
+      $('#video-container').html('<img src="/static/images/no_camera.png">');
+
+      $('#user-form').on('submit', function (e) {
+        e.preventDefault();
+
+        $.ajax({
+          url: $(this).attr('action'),
+          type: $(this).attr('method'),
+          data: $(this).serialize(),
+          success: function (response) {
+            if (response.status === 'success') {
+              const mdd = response.data.mdd;
+              const name = response.data.name;
+              const dvct = response.data.dvct;
+
+              const videoUrl = `/generate/${mdd}/${name}/${dvct}`;
+              $('#video-container').html('<img src="' + videoUrl + '">');
+
+              setTimeout(() => {
+                $.ajax({
+                  url: '/back',
+                  type: 'GET',
+                  success: function (response) {
+                    if (response.status === 'success') {
+                      window.location.href = "{{ url_for('index') }}";
+                    }
+                  },
+                });
+              }, 20000);
+            } else {
+              window.location.href = "{{ url_for('addnew') }}";
+            }
+          },
+          error: function (xhr, status, error) {
+            console.log('Form submission failed: ' + error);
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>
